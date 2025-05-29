@@ -294,3 +294,92 @@ Se recomienda exponer los endpoints a través de **WSO2 API Manager**:
 ## Union con istio:
 
 ![alt text](images/image.png)
+
+## Creacion de apis en WSO2
+![alt text](images/imagewso2.png)
+
+## Creacion de aplicacion de suscripcion
+![alt text](images/image-app.png)
+
+## Activar generaciones de claves
+![alt text](images/image-keygen.png)
+
+## Suscripcion a servicio
+![alt text](images/image-sub.png)
+
+---
+
+## Despliegue en Kind + Istio
+
+A continuación se describen los pasos para desplegar los microservicios en un clúster local usando [Kind](https://kind.sigs.k8s.io/) y [Istio](https://istio.io/):
+
+### 1. Construir las imágenes Docker de los microservicios
+
+Desde la raíz del proyecto, ejecuta:
+
+```bash
+docker build -t securityrol-service ./SecureAndRoles
+docker build -t solicitudel-service ./Solicitudes
+```
+
+### 2. Crear el clúster Kind con soporte para Ingress
+
+Crea un archivo `kind-config.yaml` con el siguiente contenido:
+
+```yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 8080
+```
+
+Luego crea el clúster:
+
+```bash
+kind create cluster --name istio-mesh --config kind-config.yaml
+```
+
+### 3. Subir las imágenes Docker al clúster Kind
+
+```bash
+kind load docker-image securityrol-service --name istio-mesh
+kind load docker-image solicitudel-service --name istio-mesh
+```
+
+### 4. Aplicar los manifiestos YAML de Kubernetes
+
+Asegúrate de tener los archivos de despliegue en la carpeta `proxy/`:
+
+```bash
+kubectl apply -f proxy/securityrol-service.yml
+kubectl apply -f proxy/solicitudel-service.yml
+```
+
+### 5. Instalar Istio y habilitar Kiali
+
+Sigue la [guía oficial de Istio](https://istio.io/latest/docs/setup/getting-started/) para instalar Istio en tu clúster Kind.  
+Luego, para abrir el dashboard de Kiali:
+
+```bash
+istioctl dashboard kiali
+```
+
+### 6. Port forwarding para exponer los servicios localmente
+
+En terminales separadas, ejecuta:
+
+```bash
+kubectl port-forward -n mesh-apps svc/securityrol-service 5000:80
+kubectl port-forward -n mesh-apps svc/solicitudel-service 5001:80
+```
+
+Ahora puedes acceder a los microservicios en `http://localhost:5000` y `http://localhost:5001`.
+
+---
+
+**Notas:**
+- Asegúrate de que los manifiestos YAML de Kubernetes estén correctamente configurados para el namespace `mesh-apps` y tengan las anotaciones necesarias para Istio.
+- Puedes monitorear el tráfico y la salud de los servicios desde el dashboard de Kiali.
