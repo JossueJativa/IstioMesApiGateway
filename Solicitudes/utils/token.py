@@ -18,7 +18,7 @@ def token_required(f):
         return f(*args, **kwargs)
     return decorated
 
-def verify_token_http(token, auth_service_url='http://localhost:5000/verify'):
+def verify_token_http(token, auth_service_url='http://securityrol-service:80/verify'):
     try:
         headers = {'Authorization': f'Bearer {token}'}
         response = requests.get(auth_service_url, headers=headers)

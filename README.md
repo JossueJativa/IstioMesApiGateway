@@ -213,28 +213,92 @@ python app.py
 
 ---
 
-## API Gateway y Seguridad (WSO2)
+## API Gateway con WSO2
 
-Se recomienda exponer los endpoints a través de **WSO2 API Manager**:
-- Registra el endpoint `/solicitudes` y aplica:
-  - Política de seguridad por token JWT.
-  - Política de rate limiting.
+### Documentación y pasos para exponer APIs con WSO2 API Manager
 
-**Pasos generales en WSO2:**
-1. Crear una nueva API REST en WSO2 API Publisher.
-2. Configurar los recursos `/solicitudes`, `/solicitudes/{id}` y métodos (POST, GET, PATCH).
-3. Habilitar la autenticación JWT (OAuth2) en la sección de seguridad.
-4. Configurar una política de rate limiting (ejemplo: 10 requests/minuto).
-5. Publicar la API y suscribirse desde el API Store.
-6. Usar el token JWT generado para consumir los endpoints protegidos.
+#### 1. Iniciar WSO2 API Manager
 
-**Ejemplo de configuración de recursos en WSO2:**
-- **Resource:** `/solicitudes` (POST)
-- **Resource:** `/solicitudes/{id}` (GET, PATCH)
-- **Security:** OAuth2 (JWT)
-- **Throttling Policy:** 10 requests/minuto
+Ubicación de WSO2:
+```powershell
+cd C:\Users\user\GitRepositories\UDLA\Integracion\wso2am-4.5.0\bin
+.\api-manager.bat --start
+```
 
-**Nota:** Puedes exportar la configuración de la API desde WSO2 o adjuntar capturas de pantalla como evidencia.
+Accede al API Publisher desde tu navegador:
+[https://localhost:9443/publisher/apis](https://localhost:9443/publisher/apis)
+
+Si no has iniciado sesión, usa las credenciales:
+- **Usuario:** admin
+- **Contraseña:** admin
+
+#### 2. Crear una nueva API
+
+En la página de Publisher de API Manager:
+[https://localhost:9443/publisher](https://localhost:9443/publisher)
+
+- Haz clic en **Start From Scratch**.
+- Ingresa:
+  - **Nombre de la aplicación**
+  - **Contexto** (Ejemplo: `/api/weather`)
+  - **Versión**
+  - **Endpoint** al que apuntará la API (si usas Service Mesh, pon el puerto del forwarding)
+
+#### 3. Configurar los recursos/endpoints
+
+En la sección de resources, agrega los endpoints que deseas exponer. Ejemplo:
+- **HTTP Verb:** POST
+  - **URI Pattern:** `/verify`
+- **HTTP Verb:** GET
+  - **URI Pattern:** `/users/{userId}`
+- Haz clic en el **+** para agregar cada recurso.
+- Si usas Swagger, asegúrate de que el header `Authorization` esté presente.
+
+Expande el método POST para agregar parámetros:
+- En **body**, selecciona `application/json` como content-type, márcalo como requerido y define el esquema.
+- Haz clic en **Guardar**.
+
+#### ![Creación de APIs en WSO2](images/imagewso2.png)
+
+---
+
+#### 4. Crear una aplicación para manejo de solicitudes
+
+Accede al Developer Portal:
+[https://localhost:9443/devportal/](https://localhost:9443/devportal/)
+
+- Haz clic en **Aplicaciones** (parte superior izquierda).
+- Haz clic en **Agregar Nueva Aplicación** y completa:
+  - **Nombre de la aplicación**
+  - **Solicitudes por minuto**
+  - **Descripción** (opcional)
+- Haz clic en **Guardar**.
+- En el menú izquierdo, selecciona **Fichas OAuth2** y haz clic en **Generate keys**.
+
+#### ![Creación de aplicación de suscripción](images/image-app.png)
+#### ![Activar generación de claves](images/image-keygen.png)
+
+---
+
+#### 5. Suscripción de la aplicación al API
+
+- Vuelve a la pantalla de APIs y selecciona la API que deseas suscribir.
+- Haz clic en **Suscripciones** (parte derecha).
+- Selecciona la aplicación creada y haz clic en **Suscribirse**.
+
+#### ![Suscripción a servicio](images/image-sub.png)
+
+---
+
+#### 6. Configuración de rutas y testing
+
+- En la sección de rutas, configura los endpoints de cada microservicio.
+- Ejemplo de rutas:
+  - ![Rutas en WSO2 de SecureAndRoles](images/image-rutas-sol.png)
+  - ![Rutas en WSO2 de Solicitudes](images/image-rutas-solicitude.png)
+
+- Para probar la generación de rutas y consumo de la API:
+  - ![Testing de generación de rutas con WSO2](images/image-pruebas.png)
 
 ---
 
@@ -289,27 +353,6 @@ Se recomienda exponer los endpoints a través de **WSO2 API Manager**:
 - El microservicio de Solicitudes consume el servicio de SecureAndRoles para validar JWT.
 - El endpoint `/health` es usado para readiness/liveness en Kubernetes/Istio.
 
----
-
-## Union con istio:
-
-![alt text](images/image.png)
-
-## Creacion de apis en WSO2
-![alt text](images/imagewso2.png)
-
-## Creacion de aplicacion de suscripcion
-![alt text](images/image-app.png)
-
-## Activar generaciones de claves
-![alt text](images/image-keygen.png)
-
-## Suscripcion a servicio
-![alt text](images/image-sub.png)
-
-## Creacion de rutas en WSO2 de cada servicio
-![alt text](images/image-rutas-sol.png)
-![alt text](images/image-rutas-solicitude.png)
 ---
 
 ## Despliegue en Kind + Istio
