@@ -307,6 +307,9 @@ Se recomienda exponer los endpoints a través de **WSO2 API Manager**:
 ## Suscripcion a servicio
 ![alt text](images/image-sub.png)
 
+## Creacion de rutas en WSO2 de cada servicio
+![alt text](images/image-rutas-sol.png)
+![alt text](images/image-rutas-solicitude.png)
 ---
 
 ## Despliegue en Kind + Istio
